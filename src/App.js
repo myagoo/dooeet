@@ -20,7 +20,7 @@ function App() {
         "Helvetica Neue", sans-serif`,
       '-webkit-font-smoothing': 'antialiased',
       '-moz-osx-font-smoothing': 'grayscale',
-      transition: `background-color 250ms`,
+      transition: `background-color 250ms, color 250ms`,
     },
     'body, html, #root': {
       height: '100%',

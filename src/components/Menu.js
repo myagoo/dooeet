@@ -1,9 +1,10 @@
 import { ThemeContext } from 'css-system'
-import React, { useContext } from 'react'
+import React, { useContext, useMemo } from 'react'
 import { FaMoon, FaSun } from 'react-icons/fa'
+import { useQuery } from 'react-query'
 import firebase from '../firebase'
 import { SecondaryButton } from '../primitives/Button'
-import { Hint, Title } from '../primitives/Text'
+import { Hint, Text, Title } from '../primitives/Text'
 import { View } from '../primitives/View'
 import { ToggleThemeContext } from '../providers/Theme'
 
@@ -14,6 +15,33 @@ export const Menu = () => {
   const handleLogout = () => {
     firebase.auth().signOut()
   }
+
+  const { data: todos } = useQuery(
+    'todos',
+    async () =>
+      await firebase
+        .database()
+        .ref(`users/${firebase.auth().currentUser.uid}/todos`)
+        .once('value')
+        .then((snapshot) => {
+          const todos = []
+          snapshot.forEach((childSnapshot) => {
+            todos.push({
+              key: childSnapshot.key,
+              ...childSnapshot.val(),
+            })
+          })
+          return todos.reverse()
+        })
+  )
+
+  const [completedTodosCount, todosCount] = useMemo(() => {
+    if (!todos) {
+      return []
+    }
+    const completedTodos = todos.filter(({ completed }) => completed)
+    return [completedTodos.length, todos.length]
+  }, [todos])
 
   return (
     <View
@@ -39,6 +67,17 @@ export const Menu = () => {
           as={theme.name === 'light' ? FaMoon : FaSun}
           onClick={toggleTheme}
         />
+      </View>
+      <View
+        css={{
+          flexDirection: 'row',
+          alignItems: 'baseline',
+          gap: 3,
+        }}
+      >
+        <Text>
+          Completed {completedTodosCount}/{todosCount} todos
+        </Text>
       </View>
       <View
         css={{
